@@ -1,9 +1,5 @@
-import {Form} from './core/Form'
+import {Form as FormWrapper} from './core/Form'
 
-const createForm = (data: any) => new Form(data)
+export const createForm = (data: any) => new FormWrapper(data)
 
-export {
-    createForm
-}
-
-export default Form
+export default FormWrapper

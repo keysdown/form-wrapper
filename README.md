@@ -17,7 +17,6 @@ npm install @keysdown/form-wrapper --save
 Basic example using Vue.
 
 ```vue
-
 <template>
   <form @submit.prevent="submit">
     <input type="text" v-model="form.first_name"/>
@@ -30,9 +29,9 @@ Basic example using Vue.
 <script setup lang="ts">
   import axios from 'axios'
   import {ref} from 'vue'
-  import Form from '@keysdown/form-wrapper'
+  import {createForm} from '@keysdown/form-wrapper'
 
-  const form = ref(Form({
+  const form = ref(createForm({
     first_name: null,
     last_name: null,
     username: null
@@ -73,9 +72,9 @@ Basic example with validation using Vue.
 <script setup lang="ts">
   import axios from 'axios'
   import {ref} from 'vue'
-  import Form from '@keysdown/form-wrapper'
+  import {createForm} from '@keysdown/form-wrapper'
 
-  const form = ref(Form({
+  const form = ref(createForm({
     first_name: {
       value: null,
       rules: ['required'],
@@ -179,7 +178,7 @@ form.addFields({
 Method used when you want to fill in several form fields at once.
 
 ```js
-const form = Form({
+const form = createForm({
     username: null
 })
 
@@ -197,7 +196,7 @@ console.log(form.values()) // {username: 'keysdown'}
 Method used when you want to remove a field from the form.
 
 ```js
-const form = Form({
+const form = createForm({
     username: null
 })
 
@@ -213,7 +212,7 @@ console.log(form.values()) // {}
 Method used to remove multiple fields to the form.
 
 ```js
-const form = Form({
+const form = createForm({
     username: null
 })
 
@@ -229,7 +228,7 @@ console.log(form.values()) // {}
 Method used to reset all form values to original state.
 
 ```js
-const form = Form({
+const form = createForm({
     username: null
 })
 
@@ -247,7 +246,7 @@ console.log(form.values()) // {username: null}
 Method used to change the form loading state.
 
 ```js
-const form = Form({
+const form = createForm({
     username: null
 })
 
@@ -267,7 +266,7 @@ console.log(form.awaiting) // false
 Method used to validate the entire form or a specific field.
 
 ```js
- const form = Form({
+ const form = createForm({
     username: {
         value: null,
         rules: ['required'],
@@ -301,7 +300,7 @@ form.validate()
 Method used to validate a specific field.
 
 ```js
- const form = Form({
+ const form = createForm({
     username: {
         value: null,
         rules: ['required'],
@@ -335,7 +334,7 @@ form.validate('username')
 Method used to validate the entire form.
 
 ```js
- const form = Form({
+ const form = createForm({
     username: {
         value: null,
         rules: ['required'],
@@ -371,7 +370,7 @@ form.validate()
 Method used to access all form values in json format.
 
 ```js
- const form = Form({
+ const form = createForm({
     username: null
 })
 
@@ -385,7 +384,7 @@ axios.post('some-api', form.values())
 Method used to access all form values as form data.
 
 ```js
- const form = Form({
+ const form = createForm({
     username: null
 })
 
