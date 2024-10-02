@@ -1,4 +1,4 @@
-import {Rules} from '../types/rules.ts'
+import {Rules} from '../types/rules'
 
 export const required = (
     value: string

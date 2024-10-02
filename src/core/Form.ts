@@ -1,10 +1,10 @@
-import {Field, FieldDeclaration, Fields, RawFields} from '../types/fields.ts'
-import {generateFieldDeclaration} from '../utils/fields.ts'
-import {Values} from '../types/values.ts'
-import {Validation} from './Validation.ts'
-import {Rule} from '../utils/validations.ts'
-import {objectToFormData} from '../utils/helpers.ts'
-import {ErrorMessage} from '../types/messages.ts'
+import {Field, FieldDeclaration, Fields, RawFields} from '../types/fields'
+import {generateFieldDeclaration} from '../utils/fields'
+import {Values} from '../types/values'
+import {Validation} from './Validation'
+import {Rule} from '../utils/validations'
+import {objectToFormData} from '../utils/helpers'
+import {ErrorMessage} from '../types/messages'
 
 export class Form {
     [key: string]: any

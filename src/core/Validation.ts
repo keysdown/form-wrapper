@@ -1,6 +1,6 @@
-import {Messages} from './Messages.ts'
-import {Rules} from './Rules.ts'
-import {Errors} from './Errors.ts'
+import {Messages} from './Messages'
+import {Rules} from './Rules'
+import {Errors} from './Errors'
 
 export class Validation {
     public errors: Errors = new Errors()

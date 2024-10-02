@@ -1,13 +1,18 @@
 {
   "name": "@keysdown/form-wrapper",
-  "version": "0.0.0",
+  "version": "0.0.5",
   "type": "module",
-  "main": "./dist/form-wrapper.umd.js",
-  "module": "./dist/form-wrapper.es.js",
+  "files": [
+    "dist/*"
+  ],
+  "main": "./dist/form-wrapper.umd.cjs",
+  "module": "./dist/form-wrapper.js",
+  "types": "./dist/form-wrapper.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/form-wrapper.es.js",
-      "require": "./dist/form-wrapper.umd.js"
+      "import": "./dist/form-wrapper.js",
+      "require": "./dist/form-wrapper.umd.cjs",
+      "types": "./dist/form-wrapper.d.ts"
     }
   },
   "scripts": {
@@ -16,7 +21,9 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/node": "^22.7.4",
     "typescript": "^5.5.3",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.2.3"
   }
 }

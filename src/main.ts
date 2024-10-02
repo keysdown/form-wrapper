@@ -1,4 +1,4 @@
-import {Form} from './core/Form.ts'
+import {Form} from './core/Form'
 
 const createForm = (data: any) => new Form(data)
 
