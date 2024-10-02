@@ -1,0 +1,22 @@
+{
+  "name": "@keysdown/form-wrapper",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/form-wrapper.umd.js",
+  "module": "./dist/form-wrapper.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/form-wrapper.es.js",
+      "require": "./dist/form-wrapper.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1"
+  }
+}
