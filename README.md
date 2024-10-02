@@ -2,8 +2,16 @@
   Form Wrapper (Beta)
 </h1>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@keysdown/form-wrapper" target="_blank">
+    <img src="https://img.shields.io/npm/v/@keysdown/form-wrapper.svg?style=shield" alt="npm"/>
+  </a>
+  <img src="https://img.shields.io/github/license/keysdown/form-wrapper.svg" alt="MIT"/>
+</p>
+
 > A package that allows you to easily manage forms, with Form Wrapper it is possible to perform validations with error messages, in addition to managing the state of the forms.
 
+> ![NOTE]
 > This package is currently in Beta and is being tested in live applications, feel free to help in the development and maturation of the package.
 
 ## Installation
