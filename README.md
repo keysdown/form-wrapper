@@ -12,6 +12,28 @@
 npm install @keysdown/form-wrapper --save
 ```
 
+## Importing
+
+```js
+import {createForm} from '@keysdown/form-wrapper'
+
+const form = ref(createForm({
+    first_name: null,
+    last_name: null,
+    username: null
+}))
+
+// Or
+
+import FormWrapper from '@keysdown/form-wrapper'
+
+const form = ref(new FormWrapper({
+    first_name: null,
+    last_name: null,
+    username: null
+}))
+```
+
 ## Basic example
 
 Basic example using Vue.
