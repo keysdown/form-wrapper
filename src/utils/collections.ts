@@ -9,11 +9,13 @@ export class Collection<T> {
 
     public first(
         key: string
-    ): T | null {
+    ): string | null {
         const data = this.get(key)
 
         if (data) {
-            return Array.isArray(data) ? data[0] : data
+            const value = Array.isArray(data) ? data[0] : data
+
+            return String(value)
         }
 
         return null
