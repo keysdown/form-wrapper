@@ -15,7 +15,9 @@ export class Collection<T> {
         if (data) {
             const value = Array.isArray(data) ? data[0] : data
 
-            return String(value)
+            if (value) {
+                return String(value)
+            }
         }
 
         return null
