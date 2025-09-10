@@ -25,7 +25,7 @@ export class Form {
         field: string,
         value: Field
     ): this {
-        if (value !== null && typeof value === 'object' && 'value' in value) {
+        if (value !== null && typeof value === 'object' && 'value' in value && !(value instanceof File)) {
             const fieldDeclaration: FieldDeclaration = generateFieldDeclaration(value)
 
             this[field] = fieldDeclaration.value
