@@ -181,17 +181,19 @@ export class Form {
             .catch(() => Promise.reject(this))
     }
 
-    public values(): Values {
+    public values(only?: string[]): Values {
         const values: Values = {}
 
         Object.keys(this.originalValues).forEach((field: string): void => {
-            values[field] = this[field]
+            if (!only || only.includes(field)) {
+                values[field] = this[field]
+            }
         })
 
         return values
     }
 
-    public valuesAsFormData() {
-        return objectToFormData(this.values())
+    public valuesAsFormData(only?: string[]) {
+        return objectToFormData(this.values(only))
     }
 }

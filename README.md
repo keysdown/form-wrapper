@@ -296,7 +296,7 @@ console.log(form.awaiting) // false
 Method used to validate the entire form or a specific field.
 
 ```js
- const form = createForm({
+const form = createForm({
     username: {
         value: null,
         rules: ['required'],
@@ -330,7 +330,7 @@ form.validate()
 Method used to validate a specific field.
 
 ```js
- const form = createForm({
+const form = createForm({
     username: {
         value: null,
         rules: ['required'],
@@ -364,7 +364,7 @@ form.validate('username')
 Method used to validate the entire form.
 
 ```js
- const form = createForm({
+const form = createForm({
     username: {
         value: null,
         rules: ['required'],
@@ -400,7 +400,7 @@ form.validate()
 Method used to access all form values in json format.
 
 ```js
- const form = createForm({
+const form = createForm({
     username: null
 })
 
@@ -409,12 +409,27 @@ form.username = 'keysdown'
 axios.post('some-api', form.values())
 ```
 
+#### Filtering values
+
+It is also possible to filter all accessed form values.
+
+```js
+const form = createForm({
+    first_name: null,
+    last_name: null
+})
+
+form.first_name = 'keysdown'
+
+axios.post('some-api', form.values(['first_name']))
+```
+
 ### valuesAsFormData()
 
 Method used to access all form values as form data.
 
 ```js
- const form = createForm({
+const form = createForm({
     username: null
 })
 
@@ -425,6 +440,21 @@ axios.post('some-api', form.valuesAsFormData(), {
         'Content-Type': 'multipart/form-data'
     }
 })
+```
+
+#### Filtering values
+
+It is also possible to filter all accessed form values.
+
+```js
+const form = createForm({
+    first_name: null,
+    last_name: null
+})
+
+form.first_name = 'keysdown'
+
+axios.post('some-api', form.valuesAsFormData(['first_name']))
 ```
 
 ## Validation
