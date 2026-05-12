@@ -63,7 +63,7 @@ export class Form {
         updateOriginalValues: boolean = false
     ): this {
         Object.keys(data).forEach((field: string) => {
-            let value = data[field]
+            const value = data[field]
 
             if (updateOriginalValues) {
                 this.originalValues[field] = value
