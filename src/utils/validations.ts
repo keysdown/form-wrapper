@@ -1,7 +1,7 @@
 import {Rules} from '../types/rules'
 
 export const required = (
-    value: string
+    value: any
 ): Promise<any> => new Promise((resolve, reject) => {
     if (value === undefined || value === null) {
         reject()

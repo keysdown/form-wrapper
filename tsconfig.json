@@ -3,7 +3,7 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -13,7 +13,7 @@
     "moduleDetection": "force",
     "noEmit": true,
 
-    /* Linting */
+    "types": ["node"],
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

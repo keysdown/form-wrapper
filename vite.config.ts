@@ -10,7 +10,7 @@ export default defineConfig({
             fileName: 'form-wrapper',
             formats: ['es', 'cjs', 'umd', 'iife']
         },
-        rollupOptions: {
+        rolldownOptions: {
             output: {
                 exports: 'named'
             },
