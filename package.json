@@ -1,6 +1,10 @@
 {
   "name": "@keysdown/form-wrapper",
   "version": "1.0.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "type": "module",
   "files": [
     "dist/*"
