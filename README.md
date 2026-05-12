@@ -1,5 +1,5 @@
 <h1 align="center">
-  Form Wrapper (Beta)
+  Form Wrapper
 </h1>
 
 <p align="center">
@@ -10,9 +10,6 @@
 </p>
 
 > A package that allows you to easily manage forms, with Form Wrapper it is possible to perform validations with error messages, in addition to managing the state of the forms.
-
-> ![NOTE]
-> This package is currently in Beta and is being tested in live applications, feel free to help in the development and maturation of the package.
 
 ## Installation
 
