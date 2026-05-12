@@ -1,6 +1,10 @@
 {
   "name": "@keysdown/form-wrapper",
   "version": "1.0.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keysdown/form-wrapper.git"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
