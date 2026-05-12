@@ -4,7 +4,7 @@ export const required = (
     value: any
 ): Promise<any> => new Promise((resolve, reject) => {
     if (value === undefined || value === null) {
-        reject()
+        return reject()
     }
 
     let str = String(value).replace(/\s/g, "");

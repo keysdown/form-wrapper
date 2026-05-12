@@ -16,8 +16,8 @@ export const generateFieldDeclaration = (
             rules: value.validation?.rules ?
                 generateValidationRules(value.validation.rules) :
                 [],
-            messages: value.validation?.messages || {}
+            messages: value.validation?.messages ?? {}
         },
-        value: value.value || null
+        value: value.value ?? null
     }
 }

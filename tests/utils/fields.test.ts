@@ -46,9 +46,37 @@ describe('generateFieldDeclaration', () => {
         expect(decl.validation.messages).toEqual({})
     })
 
-    it('defaults value to null when falsy', () => {
+    it('preserves falsy values with nullish coalescing', () => {
         const decl = generateFieldDeclaration({
             value: '',
+            validation: {}
+        })
+        expect(decl.value).toBe('')
+
+        const declZero = generateFieldDeclaration({
+            value: 0,
+            validation: {}
+        })
+        expect(declZero.value).toBe(0)
+
+        const declFalse = generateFieldDeclaration({
+            value: false,
+            validation: {}
+        })
+        expect(declFalse.value).toBe(false)
+    })
+
+    it('defaults value to null when undefined', () => {
+        const decl = generateFieldDeclaration({
+            value: undefined,
+            validation: {}
+        })
+        expect(decl.value).toBeNull()
+    })
+
+    it('defaults value to null when null', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
             validation: {}
         })
         expect(decl.value).toBeNull()

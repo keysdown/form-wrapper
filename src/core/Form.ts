@@ -25,7 +25,7 @@ export class Form {
         field: string,
         value: Field
     ): this {
-        if (value !== null && typeof value === 'object' && 'value' in value && !(value instanceof File)) {
+        if (value !== null && typeof value === 'object' && Object.prototype.toString.call(value) === '[object Object]' && 'value' in value) {
             const fieldDeclaration: FieldDeclaration = generateFieldDeclaration(value)
 
             this[field] = fieldDeclaration.value
@@ -85,6 +85,8 @@ export class Form {
         delete this[field]
 
         delete this.originalValues[field]
+
+        this.validation.errors.unset(field)
 
         this.validation.messages.unset(field)
 
@@ -160,7 +162,7 @@ export class Form {
                             })
                     }
 
-                    return Promise.reject(new Error(`There is no validation rule called "${rule}"`))
+                    return Promise.reject(new Error(`There is no validation rule called "${ruleName}"`))
                 }
             )
 
