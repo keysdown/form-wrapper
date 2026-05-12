@@ -73,6 +73,23 @@ describe('Collection', () => {
         expect(c.first('key')).toBeNull()
     })
 
+    it('has with array returns true if any key exists', () => {
+        const c = new Collection<string>()
+        c.push('name', 'value')
+        expect(c.has(['name'])).toBe(true)
+        expect(c.has(['name', 'missing'])).toBe(true)
+    })
+
+    it('has with array returns false if no keys exist', () => {
+        const c = new Collection<string>()
+        expect(c.has(['missing-a', 'missing-b'])).toBe(false)
+    })
+
+    it('has with empty array returns false', () => {
+        const c = new Collection<string>()
+        expect(c.has([])).toBe(false)
+    })
+
     it('methods return this for chaining', () => {
         const c = new Collection<string>()
         const result = c.push('a', '1').fill({b: '2'}).unset('b').clear()

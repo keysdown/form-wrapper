@@ -289,6 +289,107 @@ describe('Form', () => {
         })
     })
 
+    describe('wasChanged', () => {
+        it('returns false for unchanged field', () => {
+            const form = new Form({name: null})
+            expect(form.wasChanged('name')).toBe(false)
+        })
+
+        it('returns true for changed field', () => {
+            const form = new Form({name: null})
+            form.name = 'John'
+            expect(form.wasChanged('name')).toBe(true)
+        })
+
+        it('returns false after reset', () => {
+            const form = new Form({name: null})
+            form.name = 'John'
+            form.reset()
+            expect(form.wasChanged('name')).toBe(false)
+        })
+
+        it('returns true with array when any field changed', () => {
+            const form = new Form({a: null, b: null})
+            form.a = 'x'
+            expect(form.wasChanged(['a', 'b'])).toBe(true)
+        })
+
+        it('returns false with array when no fields changed', () => {
+            const form = new Form({a: null, b: null})
+            expect(form.wasChanged(['a', 'b'])).toBe(false)
+        })
+
+        it('returns false for empty array', () => {
+            const form = new Form({name: null})
+            expect(form.wasChanged([])).toBe(false)
+        })
+
+        it('returns true when value changes from non-null', () => {
+            const form = new Form({name: 'original'})
+            form.name = 'changed'
+            expect(form.wasChanged('name')).toBe(true)
+        })
+
+        it('returns false when value is set to same as original', () => {
+            const form = new Form({name: 'same'})
+            form.name = 'same'
+            expect(form.wasChanged('name')).toBe(false)
+        })
+    })
+
+    describe('filled', () => {
+        it('returns false for null field', () => {
+            const form = new Form({name: null})
+            expect(form.filled('name')).toBe(false)
+        })
+
+        it('returns false for undefined field', () => {
+            const form = new Form({})
+            expect(form.filled('nonexistent')).toBe(false)
+        })
+
+        it('returns false for empty string', () => {
+            const form = new Form({name: ''})
+            expect(form.filled('name')).toBe(false)
+        })
+
+        it('returns true for non-empty string', () => {
+            const form = new Form({name: null})
+            form.name = 'keysdown'
+            expect(form.filled('name')).toBe(true)
+        })
+
+        it('returns true for number 0', () => {
+            const form = new Form({count: 0})
+            expect(form.filled('count')).toBe(true)
+        })
+
+        it('returns true for boolean false', () => {
+            const form = new Form({active: false})
+            expect(form.filled('active')).toBe(true)
+        })
+
+        it('returns true with array when all fields are filled', () => {
+            const form = new Form({a: 'x', b: 'y'})
+            expect(form.filled(['a', 'b'])).toBe(true)
+        })
+
+        it('returns false with array when one field is not filled', () => {
+            const form = new Form({a: null, b: 'y'})
+            expect(form.filled(['a', 'b'])).toBe(false)
+        })
+
+        it('returns false with array when no fields are filled', () => {
+            const form = new Form({a: null, b: null})
+            expect(form.filled(['a', 'b'])).toBe(false)
+        })
+
+        it('returns true for empty array', () => {
+            const form = new Form({})
+            expect(form.filled([])).toBe(true)
+        })
+    })
+
     describe('values', () => {
         it('returns all field values', () => {
             const form = new Form({a: 1, b: 2})

@@ -48,8 +48,12 @@ export class Collection<T> {
     }
 
     public has(
-        key: string
+        key: string | string[]
     ): boolean {
+        if (Array.isArray(key)) {
+            return key.some(k => this.collection.hasOwnProperty(k))
+        }
+
         return this.collection.hasOwnProperty(key)
     }
 

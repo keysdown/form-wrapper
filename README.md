@@ -11,6 +11,10 @@
 
 > A package that allows you to easily manage forms, with Form Wrapper it is possible to perform validations with error messages, in addition to managing the state of the forms.
 
+<p align="center">
+  <strong>Bundle size (minified + gzip):</strong> ~1.4 kB
+</p>
+
 ## Installation
 
 ```shell
@@ -266,6 +270,44 @@ console.log(form.values()) // {username: 'keysdown'}
 form.reset()
 
 console.log(form.values()) // {username: null}
+```
+
+### wasChanged(field)
+
+Method used to check if one or more fields have been changed from their original values. When an array is provided, returns `true` if **any** of the fields were changed.
+
+```js
+const form = createForm({
+    name: null,
+    username: null
+})
+
+console.log(form.wasChanged('username')) // false
+
+form.username = 'keysdown'
+
+console.log(form.wasChanged('username')) // true
+
+console.log(form.wasChanged(['name', 'username'])) // true (any changed)
+```
+
+### filled(field)
+
+Method used to check if one or more fields are filled (not `null`, not `undefined`, not empty string `''`). When an array is provided, returns `true` only if **all** fields are filled.
+
+```js
+const form = createForm({
+    name: null,
+    username: null
+})
+
+form.username = 'keysdown'
+
+console.log(form.filled('username')) // true
+
+console.log(form.filled('name')) // false
+
+console.log(form.filled(['name', 'username'])) // false (name is not filled)
 ```
 
 ### setAwaiting(awaiting = true)
@@ -548,10 +590,11 @@ form.rules.push('username', 'required')
 
 #### has(key)
 
-Checking if the collection has an item with the key.
+Checking if the collection has an item with the key. Accepts a single key or an array of keys. When an array is provided, returns `true` if **any** of the keys exist.
 
 ```js
 form.errors.has('username')
+form.errors.has(['username', 'email'])
 form.messages.has('username')
 form.rules.has('username')
 ```

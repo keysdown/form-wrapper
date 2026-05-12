@@ -115,6 +115,26 @@ export class Form {
         return this
     }
 
+    public wasChanged(
+        field: string | string[]
+    ): boolean {
+        if (Array.isArray(field)) {
+            return field.some(f => this[f] !== this.originalValues[f])
+        }
+
+        return this[field] !== this.originalValues[field]
+    }
+
+    public filled(
+        field: string | string[]
+    ): boolean {
+        if (Array.isArray(field)) {
+            return field.every(f => this[f] !== null && this[f] !== undefined && this[f] !== '')
+        }
+
+        return this[field] !== null && this[field] !== undefined && this[field] !== ''
+    }
+
     public get rules() {
         return this.validation.rules
     }
