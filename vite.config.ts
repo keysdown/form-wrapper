@@ -8,7 +8,7 @@ export default defineConfig({
             entry: resolve(__dirname, 'src/main.ts'),
             name: 'FormWrapper',
             fileName: 'form-wrapper',
-            formats: ['es', 'cjs', 'umd', 'iife']
+            formats: ['es', 'cjs', 'umd']
         },
         minify: true,
         rolldownOptions: {

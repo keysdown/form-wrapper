@@ -2,7 +2,8 @@ import { Validation } from './validations'
 
 export interface Field {
     validation?: object,
-    value: any
+    value: any,
+    attribute?: string
 }
 
 export interface FieldDeclaration {

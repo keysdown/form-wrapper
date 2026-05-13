@@ -1,0 +1,41 @@
+import {Locale} from '../../types/locale'
+
+const en: Locale = {
+    name: 'en',
+    messages: {
+        required: 'The :field field is required.',
+        email: 'The :field must be a valid email address.',
+        url: 'The :field must be a valid URL.',
+        min: 'The :field must be at least :min.',
+        max: 'The :field may not be greater than :max.',
+        between: 'The :field must be between :min and :max.',
+        size: 'The :field must be :size.',
+        alpha: 'The :field may only contain letters.',
+        alphaNumeric: 'The :field may only contain letters and numbers.',
+        string: 'The :field must be a string.',
+        integer: 'The :field must be an integer.',
+        numeric: 'The :field must be a number.',
+        array: 'The :field must be an array.',
+        boolean: 'The :field field must be true or false.',
+        date: 'The :field is not a valid date.',
+        same: 'The :field and :other must match.',
+        different: 'The :field and :other must be different.',
+        confirmed: 'The :field confirmation does not match.',
+        in: 'The selected :field is invalid.',
+        notIn: 'The selected :field is invalid.',
+        regex: 'The :field format is invalid.',
+        startsWith: 'The :field must start with one of the following: :values.',
+        endsWith: 'The :field must end with one of the following: :values.',
+        digits: 'The :field must be :digits digits.',
+        digitsBetween: 'The :field must be between :min and :max digits.',
+        ip: 'The :field must be a valid IP address.',
+        json: 'The :field must be a valid JSON string.',
+        uuid: 'The :field must be a valid UUID.',
+        lessThan: 'The :field must be less than :other.',
+        greaterThan: 'The :field must be greater than :other.',
+        lessThanOrEqual: 'The :field must be less than or equal to :other.',
+        greaterThanOrEqual: 'The :field must be greater than or equal to :other.',
+        nullable: 'The :field must be nullable.',
+    }
+}
+export default en

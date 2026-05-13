@@ -1,5 +1,7 @@
 import {describe, it, expect} from 'vitest'
 import {generateFieldDeclaration} from '../../src/utils/fields'
+import required from '../../src/plugins/rules/required'
+import email from '../../src/plugins/rules/email'
 
 describe('generateFieldDeclaration', () => {
     it('generates declaration with array rules', () => {
@@ -89,5 +91,108 @@ describe('generateFieldDeclaration', () => {
         expect(decl.validation.rules).toEqual([])
         expect(decl.validation.messages).toEqual({})
         expect(decl.value).toBe('hello')
+    })
+
+    it('preserves rule functions in rules array', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: [required, email, 'min:6'],
+                messages: {required: 'Required'}
+            }
+        })
+        expect(decl.validation.rules).toHaveLength(3)
+        expect(decl.validation.rules[0]).toBe(required)
+        expect(decl.validation.rules[1]).toBe(email)
+        expect(decl.validation.rules[2]).toBe('min:6')
+    })
+
+    it('handles mixed function and string rules', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: [required, 'email'],
+                messages: {}
+            }
+        })
+        expect(typeof decl.validation.rules[0]).toBe('function')
+        expect(typeof decl.validation.rules[1]).toBe('string')
+    })
+
+    it('handles regex rule with pipe in pattern', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: 'required|regex:/a|b/',
+                messages: {}
+            }
+        })
+        expect(decl.validation.rules).toEqual(['required', 'regex:/a|b/'])
+    })
+
+    it('handles regex rule with pipe as only rule', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: 'regex:/a|b/',
+                messages: {}
+            }
+        })
+        expect(decl.validation.rules).toEqual(['regex:/a|b/'])
+    })
+
+    it('handles rules after regex in pipe-separated string', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: 'regex:/^test$/|required|min:3',
+                messages: {}
+            }
+        })
+        expect(decl.validation.rules).toEqual(['regex:/^test$/', 'required', 'min:3'])
+    })
+
+    it('handles rules before and after regex in pipe-separated string', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: 'email|regex:/a|b/|required',
+                messages: {}
+            }
+        })
+        expect(decl.validation.rules).toEqual(['email', 'regex:/a|b/', 'required'])
+    })
+
+    it('handles regex with flags in pipe-separated string', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: 'required|regex:/pattern/gi|min:3',
+                messages: {}
+            }
+        })
+        expect(decl.validation.rules).toEqual(['required', 'regex:/pattern/gi', 'min:3'])
+    })
+
+    it('handles regex without slashes as fallback', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: 'regex:simple',
+                messages: {}
+            }
+        })
+        expect(decl.validation.rules).toEqual(['regex:simple'])
+    })
+
+    it('handles regex with only opening slash', () => {
+        const decl = generateFieldDeclaration({
+            value: null,
+            validation: {
+                rules: 'regex:/pattern',
+                messages: {}
+            }
+        })
+        expect(decl.validation.rules).toEqual(['regex:/pattern'])
     })
 })

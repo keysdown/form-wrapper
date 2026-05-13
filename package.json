@@ -1,6 +1,6 @@
 {
   "name": "@keysdown/form-wrapper",
-  "version": "1.0.5",
+  "version": "2.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/keysdown/form-wrapper.git"
@@ -21,11 +21,26 @@
       "import": "./dist/form-wrapper.js",
       "require": "./dist/form-wrapper.umd.cjs",
       "types": "./dist/form-wrapper.d.ts"
+    },
+    "./plugins/formValidation": {
+      "import": "./dist/plugins/formValidation.js",
+      "require": "./dist/plugins/formValidation.cjs",
+      "types": "./dist/plugins/formValidation.d.ts"
+    },
+    "./plugins/rules": {
+      "import": "./dist/plugins/rules.js",
+      "require": "./dist/plugins/rules.cjs",
+      "types": "./dist/plugins/rules.d.ts"
+    },
+    "./plugins/locales": {
+      "import": "./dist/plugins/locales.js",
+      "require": "./dist/plugins/locales.cjs",
+      "types": "./dist/plugins/locales.d.ts"
     }
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && vite build --config vite.config.plugins.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

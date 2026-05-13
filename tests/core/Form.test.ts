@@ -1,5 +1,11 @@
-import {describe, it, expect} from 'vitest'
+import {describe, it, expect, beforeEach, afterEach} from 'vitest'
 import {Form} from '../../src/core/Form'
+import required from '../../src/plugins/rules/required'
+import email from '../../src/plugins/rules/email'
+import en from '../../src/plugins/locales/en'
+import pt from '../../src/plugins/locales/pt'
+
+type InlineRuleParams = {value: any, fail: (msg?: string) => void, form: any, field: string}
 
 const validationField = (value: any, rules: string[], messages: Record<string, string>) => ({
     value,
@@ -7,6 +13,15 @@ const validationField = (value: any, rules: string[], messages: Record<string, s
 })
 
 describe('Form', () => {
+    beforeEach(() => {
+        Form.rules = {}
+        Form.rules['required'] = required
+    })
+
+    afterEach(() => {
+        Form.rules = {}
+    })
+
     describe('constructor', () => {
         it('creates form with simple fields', () => {
             const form = new Form({username: null, email: null})
@@ -18,6 +33,109 @@ describe('Form', () => {
         it('creates form with default values', () => {
             const form = new Form({name: 'John'})
             expect(form.name).toBe('John')
+        })
+    })
+
+    describe('static rules registry', () => {
+        it('starts with an empty rules registry by default', () => {
+            Form.rules = {}
+            expect(Object.keys(Form.rules)).toHaveLength(0)
+        })
+
+        it('holds registered rules', () => {
+            Form.rules = {}
+            Form.rules['required'] = required
+            expect('required' in Form.rules).toBe(true)
+            expect(typeof Form.rules['required']).toBe('function')
+        })
+
+        it('shares rules across instances', () => {
+            Form.rules = {}
+            Form.rules['required'] = required
+            const form1 = new Form({a: null})
+            const form2 = new Form({b: null})
+            expect((form1.constructor as typeof Form).rules).toBe(Form.rules)
+            expect((form2.constructor as typeof Form).rules).toBe(Form.rules)
+        })
+    })
+
+    describe('extend', () => {
+        it('calls plugin function with Form class and rules registry', () => {
+            Form.rules = {}
+            let receivedForm: any = null
+            let receivedRules: any = null
+
+            Form.extend((F, R) => {
+                receivedForm = F
+                receivedRules = R
+            })
+
+            expect(receivedForm).toBe(Form)
+            expect(receivedRules).toBe(Form.rules)
+        })
+
+        it('registers rules from plugin', () => {
+            Form.rules = {}
+            const mockRule = async (value: any) => value
+
+            Form.extend((_F, R) => {
+                R['custom'] = mockRule
+            })
+
+            expect(Form.rules['custom']).toBe(mockRule)
+        })
+
+        it('returns Form class for chaining', () => {
+            const result = Form.extend(() => {})
+            expect(result).toBe(Form)
+        })
+    })
+
+    describe('addRule', () => {
+        it('registers a single rule', () => {
+            Form.rules = {}
+            const handler = async (value: any) => value
+
+            Form.addRule('myRule', handler)
+
+            expect(Form.rules['myRule']).toBe(handler)
+        })
+
+        it('returns Form class for chaining', () => {
+            const result = Form.addRule('test', async (v) => v)
+            expect(result).toBe(Form)
+        })
+
+        it('allows validation with custom rule', async () => {
+            Form.rules = {}
+            Form.addRule('alwaysPass', async (value) => value)
+
+            const form = new Form({
+                name: validationField('test', ['alwaysPass'], {})
+            })
+
+            await expect(form.validateField('name')).resolves.toBeUndefined()
+        })
+
+        it('allows validation with custom async rule', async () => {
+            Form.rules = {}
+            Form.addRule('asyncCheck', async (value) => {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        value === 'valid' ? resolve(value) : reject()
+                    }, 10)
+                })
+            })
+
+            const form = new Form({
+                name: validationField('valid', ['asyncCheck'], {asyncCheck: 'Invalid'})
+            })
+
+            await expect(form.validateField('name')).resolves.toBeUndefined()
+
+            form.name = 'invalid'
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+            expect(form.errors.get('name')).toContain('Invalid')
         })
     })
 
@@ -104,6 +222,12 @@ describe('Form', () => {
             const form = new Form({})
             expect(form.fill({a: 1})).toBe(form)
         })
+
+        it('adds new fields to originalValues', () => {
+            const form = new Form({name: null})
+            form.fill({name: 'John', email: 'test@test.com'})
+            expect(form.values()).toEqual({name: 'John', email: 'test@test.com'})
+        })
     })
 
     describe('removeField', () => {
@@ -121,6 +245,16 @@ describe('Form', () => {
             form.removeField('username')
             expect(form.rules.has('username')).toBe(false)
             expect(form.messages.has('username')).toBe(false)
+            expect(form.errors.has('username')).toBe(false)
+        })
+
+        it('removes errors for the field', () => {
+            const form = new Form({
+                username: validationField(null, ['required'], {required: 'Required'})
+            })
+            form.errors.push('username', 'Some error')
+            form.removeField('username')
+            expect(form.errors.has('username')).toBe(false)
         })
 
         it('returns this for chaining', () => {
@@ -157,6 +291,15 @@ describe('Form', () => {
             form.errors.push('name', 'Some error')
             form.reset()
             expect(form.errors.any()).toBe(false)
+        })
+
+        it('preserves rules and messages after reset', () => {
+            const form = new Form({
+                name: validationField(null, ['required'], {required: 'Required'})
+            })
+            form.reset()
+            expect(form.rules.has('name')).toBe(true)
+            expect(form.messages.has('name')).toBe(true)
         })
 
         it('returns this for chaining', () => {
@@ -273,6 +416,16 @@ describe('Form', () => {
             await expect(form.validateForm()).rejects.toBe(form)
         })
 
+        it('validateForm sets errors for each failing field', async () => {
+            const form = new Form({
+                a: validationField(null, ['required'], {required: 'A required'}),
+                b: validationField(null, ['required'], {required: 'B required'})
+            })
+            await form.validateForm().catch(() => {})
+            expect(form.errors.get('a')).toContain('A required')
+            expect(form.errors.get('b')).toContain('B required')
+        })
+
         it('supports rules with colon-separated parameters', async () => {
             const form = new Form({
                 name: validationField('test', ['nonexistent:3'], {})
@@ -286,6 +439,360 @@ describe('Form', () => {
             })
             await form.validateField('name').catch(() => {})
             expect(form.errors.has('name')).toBe(false)
+        })
+
+        it('passes form instance as third argument to rule', async () => {
+            Form.rules = {}
+            let receivedForm: any = null
+
+            Form.addRule('checkForm', async (_value, _attrs, form) => {
+                receivedForm = form
+                return _value
+            })
+
+            const form = new Form({
+                name: validationField('test', ['checkForm'], {})
+            })
+
+            await form.validateField('name')
+            expect(receivedForm).toBe(form)
+        })
+
+        it('handles rules with regex containing colons', async () => {
+            Form.rules = {}
+            Form.addRule('regex', async (value, attrs = []) => {
+                const pattern = attrs[0]
+                const match = pattern.match(/^\/(.+)\/([gimsuy]*)$/)
+                if (!match) return Promise.reject()
+                const re = new RegExp(match[1], match[2])
+                return re.test(String(value)) ? Promise.resolve(value) : Promise.reject()
+            })
+
+            const form = new Form({
+                name: validationField('test:value', ['regex:/^test:.*$/'], {regex: 'No match'})
+            })
+
+            await expect(form.validateField('name')).resolves.toBeUndefined()
+        })
+    })
+
+    describe('function-based rules', () => {
+        it('validates using imported rule function', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: [required], messages: {required: 'Name is required'}}
+                }
+            })
+
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+            expect(form.errors.get('name')).toContain('Name is required')
+        })
+
+        it('resolves when function rule passes', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: 'John',
+                    validation: {rules: [required], messages: {required: 'Required'}}
+                }
+            })
+
+            await expect(form.validateField('name')).resolves.toBeUndefined()
+            expect(form.errors.has('name')).toBe(false)
+        })
+
+        it('validates with mixed function and string rules', async () => {
+            Form.rules = {email}
+
+            const form = new Form({
+                address: {
+                    value: null,
+                    validation: {rules: [required, 'email'], messages: {required: 'Required', email: 'Invalid'}}
+                }
+            })
+
+            await expect(form.validateField('address')).rejects.toBeUndefined()
+            expect(form.errors.get('address')).toContain('Required')
+        })
+
+        it('does not push error when function rule has no matching message', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: [required], messages: {}}
+                }
+            })
+
+            await form.validateField('name').catch(() => {})
+            expect(form.errors.has('name')).toBe(false)
+        })
+
+        it('validates full form with function rules', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: 'John',
+                    validation: {rules: [required], messages: {required: 'Required'}}
+                }
+            })
+
+            await expect(form.validateForm()).resolves.toBe(form)
+        })
+
+        it('rejects full form with function rules on failure', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: [required], messages: {required: 'Required'}}
+                }
+            })
+
+            await expect(form.validateForm()).rejects.toBe(form)
+        })
+    })
+
+    describe('inline custom rules', () => {
+        it('passes when inline rule does not call fail', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: 'John',
+                    validation: {
+                        rules: [({value, fail}: InlineRuleParams) => {
+                            if (!value) fail('Name is required')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).resolves.toBeUndefined()
+            expect(form.errors.has('name')).toBe(false)
+        })
+
+        it('fails when inline rule calls fail with message', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {
+                        rules: [({value, fail}: InlineRuleParams) => {
+                            if (!value) fail('Name is required')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+            expect(form.errors.get('name')).toContain('Name is required')
+        })
+
+        it('fails when inline rule calls fail without message', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {
+                        rules: [({fail}: InlineRuleParams) => {
+                            fail()
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+            expect(form.errors.has('name')).toBe(false)
+        })
+
+        it('supports async inline rules', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: 'taken@email.com',
+                    validation: {
+                        rules: [async ({value, fail}: InlineRuleParams) => {
+                            await new Promise(r => setTimeout(r, 10))
+                            if (value === 'taken@email.com') fail('Email already taken')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+            expect(form.errors.get('name')).toContain('Email already taken')
+        })
+
+        it('async inline rule passes when fail is not called', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: 'available@email.com',
+                    validation: {
+                        rules: [async ({value, fail}: InlineRuleParams) => {
+                            await new Promise(r => setTimeout(r, 10))
+                            if (value === 'taken@email.com') fail('Email already taken')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).resolves.toBeUndefined()
+        })
+
+        it('fails when inline rule throws', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: 'test',
+                    validation: {
+                        rules: [({}: InlineRuleParams) => {
+                            throw new Error('unexpected')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+        })
+
+        it('fails when async inline rule rejects', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: 'test',
+                    validation: {
+                        rules: [async ({}: InlineRuleParams) => {
+                            throw new Error('network error')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+        })
+
+        it('mixes inline rules with string rules', async () => {
+            Form.rules = {required}
+
+            const form = new Form({
+                name: {
+                    value: 'John',
+                    validation: {
+                        rules: ['required', ({value, fail}: InlineRuleParams) => {
+                            if (value.length < 3) fail('Too short')
+                        }],
+                        messages: {required: 'Required'}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).resolves.toBeUndefined()
+        })
+
+        it('mixes inline rules with imported function rules', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {
+                        rules: [required, ({value, fail}: InlineRuleParams) => {
+                            if (value && value.length < 3) fail('Too short')
+                        }],
+                        messages: {required: 'Required'}
+                    }
+                }
+            })
+
+            await expect(form.validateField('name')).rejects.toBeUndefined()
+            expect(form.errors.get('name')).toContain('Required')
+        })
+
+        it('receives form instance via destructured parameter', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                password: {
+                    value: 'secret123',
+                    validation: {rules: [], messages: {}}
+                },
+                password_confirmation: {
+                    value: 'different',
+                    validation: {
+                        rules: [({value, fail, form}: InlineRuleParams) => {
+                            if (value !== form.password) fail('Passwords do not match')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('password_confirmation')).rejects.toBeUndefined()
+            expect(form.errors.get('password_confirmation')).toContain('Passwords do not match')
+        })
+
+        it('inline rule with form access passes when values match', async () => {
+            Form.rules = {}
+
+            const form = new Form({
+                password: {
+                    value: 'secret123',
+                    validation: {rules: [], messages: {}}
+                },
+                password_confirmation: {
+                    value: 'secret123',
+                    validation: {
+                        rules: [({value, fail, form}: InlineRuleParams) => {
+                            if (value !== form.password) fail('Passwords do not match')
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await expect(form.validateField('password_confirmation')).resolves.toBeUndefined()
+        })
+
+        it('receives field name via destructured parameter', async () => {
+            Form.rules = {}
+            let receivedField: string | null = null
+
+            const form = new Form({
+                email: {
+                    value: 'test@test.com',
+                    validation: {
+                        rules: [({field}: InlineRuleParams) => {
+                            receivedField = field
+                        }],
+                        messages: {}
+                    }
+                }
+            })
+
+            await form.validateField('email')
+            expect(receivedField).toBe('email')
         })
     })
 
@@ -438,6 +945,227 @@ describe('Form', () => {
         it('rules returns validation.rules', () => {
             const form = new Form({})
             expect(form.rules).toBe(form.validation.rules)
+        })
+    })
+
+    describe('locale', () => {
+        it('sets default messages via locale', () => {
+            Form.locale(en)
+            expect(Form.defaultMessages).toBe(en.messages)
+        })
+
+        it('returns Form class for chaining', () => {
+            const result = Form.locale(en)
+            expect(result).toBe(Form)
+        })
+
+        it('uses default message when no user message provided', async () => {
+            Form.rules = {required}
+            Form.locale(en)
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {}}
+                }
+            })
+
+            await form.validateField('name').catch(() => {})
+            expect(form.errors.get('name')).toContain('The name field is required.')
+        })
+
+        it('user message overrides default message', async () => {
+            Form.rules = {required}
+            Form.locale(en)
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {required: 'Custom message'}}
+                }
+            })
+
+            await form.validateField('name').catch(() => {})
+            expect(form.errors.get('name')).toContain('Custom message')
+        })
+
+        it('interpolates :field with underscores replaced by spaces', async () => {
+            Form.rules = {required}
+            Form.locale(en)
+
+            const form = new Form({
+                first_name: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {}}
+                }
+            })
+
+            await form.validateField('first_name').catch(() => {})
+            expect(form.errors.get('first_name')).toContain('The first name field is required.')
+        })
+
+        it('interpolates :min and :max for string rules', async () => {
+            Form.rules = {min: (await import('../../src/plugins/rules/min')).default}
+            Form.locale(en)
+
+            const form = new Form({
+                password: {
+                    value: 'ab',
+                    validation: {rules: ['min:6'], messages: {}}
+                }
+            })
+
+            await form.validateField('password').catch(() => {})
+            expect(form.errors.get('password')).toContain('The password must be at least 6.')
+        })
+
+        it('uses Portuguese locale messages', async () => {
+            Form.rules = {required}
+            Form.locale(pt)
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {}}
+                }
+            })
+
+            await form.validateField('name').catch(() => {})
+            expect(form.errors.get('name')).toContain('O campo name é obrigatório.')
+        })
+
+        it('uses default message for imported RuleFunction', async () => {
+            Form.rules = {}
+            Form.locale(en)
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: [required], messages: {}}
+                }
+            })
+
+            await form.validateField('name').catch(() => {})
+            expect(form.errors.get('name')).toContain('The name field is required.')
+        })
+
+        it('switches locale at runtime', async () => {
+            Form.rules = {required}
+            Form.locale(en)
+
+            const formEn = new Form({
+                name: {value: null, validation: {rules: ['required'], messages: {}}}
+            })
+            await formEn.validateField('name').catch(() => {})
+            expect(formEn.errors.get('name')[0]).toContain('The')
+
+            Form.locale(pt)
+
+            const formPt = new Form({
+                name: {value: null, validation: {rules: ['required'], messages: {}}}
+            })
+            await formPt.validateField('name').catch(() => {})
+            expect(formPt.errors.get('name')[0]).toContain('O campo')
+        })
+    })
+
+    describe('attribute', () => {
+        it('uses attribute in default messages instead of field name', async () => {
+            Form.rules = {required}
+            Form.locale(en)
+
+            const form = new Form({
+                contact_email: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {}},
+                    attribute: 'contact email'
+                }
+            })
+
+            await form.validateField('contact_email').catch(() => {})
+            expect(form.errors.get('contact_email')).toContain('The contact email field is required.')
+        })
+
+        it('uses attribute in :other interpolation for cross-field rules', async () => {
+            Form.rules = {greaterThan: (await import('../../src/plugins/rules/greaterThan')).default}
+            Form.locale(en)
+
+            const form = new Form({
+                min_price: {
+                    value: 100,
+                    validation: {rules: [], messages: {}},
+                    attribute: 'minimum price'
+                },
+                max_price: {
+                    value: 50,
+                    validation: {
+                        rules: ['greaterThan:min_price'],
+                        messages: {}
+                    },
+                    attribute: 'maximum price'
+                }
+            })
+
+            await form.validateField('max_price').catch(() => {})
+            expect(form.errors.get('max_price')).toContain('The maximum price must be greater than minimum price.')
+        })
+
+        it('falls back to field name with spaces when no attribute set', async () => {
+            Form.rules = {required}
+            Form.locale(en)
+
+            const form = new Form({
+                contact_email: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {}}
+                }
+            })
+
+            await form.validateField('contact_email').catch(() => {})
+            expect(form.errors.get('contact_email')).toContain('The contact email field is required.')
+        })
+
+        it('removes attribute when field is removed', async () => {
+            Form.rules = {}
+            Form.locale(en)
+
+            const form = new Form({
+                name: {
+                    value: null,
+                    validation: {rules: [], messages: {}},
+                    attribute: 'Full Name'
+                }
+            })
+
+            form.removeField('name')
+            expect((form as any).fieldAttributes['name']).toBeUndefined()
+        })
+
+        it('does not contaminate attributes between instances', async () => {
+            Form.rules = {required}
+            Form.locale(en)
+
+            const form1 = new Form({
+                email: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {}},
+                    attribute: 'Email Address'
+                }
+            })
+
+            const form2 = new Form({
+                email: {
+                    value: null,
+                    validation: {rules: ['required'], messages: {}},
+                    attribute: 'Correo'
+                }
+            })
+
+            await form1.validateField('email').catch(() => {})
+            expect(form1.errors.get('email')).toEqual([expect.stringContaining('Email Address')])
+
+            await form2.validateField('email').catch(() => {})
+            expect(form2.errors.get('email')).toEqual([expect.stringContaining('Correo')])
         })
     })
 })

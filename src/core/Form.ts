@@ -2,16 +2,42 @@ import {Field, FieldDeclaration, Fields, RawFields} from '../types/fields'
 import {generateFieldDeclaration} from '../utils/fields'
 import {Values} from '../types/values'
 import {Validation} from './Validation'
-import {Rule} from '../utils/validations'
+import {Rules, RuleHandler} from '../types/rules'
+import {FormWrapperPlugin} from '../types/plugin'
+import {Locale, LocaleMessages} from '../types/locale'
 import {objectToFormData} from '../utils/helpers'
 import {ErrorMessage} from '../types/messages'
 
 export class Form {
     [key: string]: any
 
+    public static rules: Rules = {}
+
+    public static defaultMessages: LocaleMessages = {}
+
+    private static interpolateMessage(
+        template: string,
+        field: string,
+        attributes: string[],
+        fieldAttributes: Record<string, string>
+    ): string {
+        const fieldDisplay = fieldAttributes[field] || field.replace(/_/g, ' ')
+
+        return template
+            .replace(/:field/g, fieldDisplay)
+            .replace(/:min/g, attributes[0] || '')
+            .replace(/:max/g, attributes[1] || '')
+            .replace(/:size/g, attributes[0] || '')
+            .replace(/:digits/g, attributes[0] || '')
+            .replace(/:other/g, attributes[0] ? (fieldAttributes[attributes[0]] || attributes[0].replace(/_/g, ' ')) : '')
+            .replace(/:values/g, attributes.join(', '))
+    }
+
     public awaiting: boolean = false
 
     public originalValues: Values = {}
+
+    public fieldAttributes: Record<string, string> = {}
 
     public validation: Validation = new Validation()
 
@@ -19,6 +45,21 @@ export class Form {
         fields: Fields | RawFields
     ) {
         this.addFields(fields)
+    }
+
+    public static extend(plugin: FormWrapperPlugin): typeof Form {
+        plugin(Form, Form.rules)
+        return Form
+    }
+
+    public static addRule(name: string, handler: RuleHandler): typeof Form {
+        Form.rules[name] = Object.assign(handler, {ruleName: name})
+        return Form
+    }
+
+    public static locale(locale: Locale): typeof Form {
+        Form.defaultMessages = locale.messages
+        return Form
     }
 
     public addField(
@@ -35,6 +76,10 @@ export class Form {
             this.validation.messages.push(field, fieldDeclaration.validation.messages)
 
             this.validation.rules.push(field, fieldDeclaration.validation.rules)
+
+            if (value.attribute) {
+                this.fieldAttributes[field] = value.attribute
+            }
         } else {
             this[field] = value
 
@@ -70,6 +115,10 @@ export class Form {
             }
 
             this[field] = value
+
+            if (!(field in this.originalValues)) {
+                this.originalValues[field] = value
+            }
         })
 
         return this
@@ -85,6 +134,8 @@ export class Form {
         delete this[field]
 
         delete this.originalValues[field]
+
+        delete this.fieldAttributes[field]
 
         this.validation.errors.unset(field)
 
@@ -161,33 +212,96 @@ export class Form {
         const rules = this.validation.rules.get(field)
 
         if (rules && rules.length > 0) {
-            const validations = rules.map((
-                    rule: string
-                ) => {
-                    const ruleParts = rule.split(':')
+            const staticRules = (this.constructor as typeof Form).rules
 
-                    const ruleName: string = ruleParts[0]
-                    const ruleAttributes: string[] = ruleParts.length === 2 ? ruleParts[1].split(',') : []
+            const runRules = async (): Promise<void> => {
+                for (const rawRule of rules) {
+                    const rule: any = rawRule
 
-                    if (ruleName in Rule) {
-                        return Rule[ruleName](this[field], ruleAttributes)
-                            .catch((error?: string) => {
+                    if (typeof rule === 'function') {
+                        if ('ruleName' in rule) {
+                            const ruleName = rule.ruleName
+
+                            if (ruleName === 'nullable' && (this[field] === null || this[field] === undefined || this[field] === '')) {
+                                return
+                            }
+
+                            try {
+                                await rule(this[field], [], this, field)
+                            } catch (error) {
                                 const errorMessage: ErrorMessage | null = this.validation.messages.get(field)
 
-                                if (errorMessage && ruleName in errorMessage) {
+                                if (ruleName && errorMessage && ruleName in errorMessage) {
                                     this.validation.errors.push(field, errorMessage[ruleName])
+                                } else if (ruleName in Form.defaultMessages) {
+                                    this.validation.errors.push(field, Form.interpolateMessage(Form.defaultMessages[ruleName], field, [], this.fieldAttributes))
                                 }
 
-                                return Promise.reject(error)
+                                throw error
+                            }
+                        } else {
+                            await new Promise<void>((resolve, reject) => {
+                                let failed = false
+
+                                const fail = (message?: string) => {
+                                    failed = true
+                                    if (message) {
+                                        this.validation.errors.push(field, message)
+                                    }
+                                }
+
+                                try {
+                                    const result = rule({value: this[field], fail, form: this, field})
+
+                                    if (result instanceof Promise) {
+                                        result.then(() => {
+                                            failed ? reject() : resolve()
+                                        }).catch(() => {
+                                            reject()
+                                        })
+                                    } else {
+                                        failed ? reject() : resolve()
+                                    }
+                                } catch {
+                                    reject()
+                                }
                             })
+                        }
+
+                        continue
                     }
 
-                    return Promise.reject(new Error(`There is no validation rule called "${ruleName}"`))
-                }
-            )
+                    const colonIndex = rule.indexOf(':')
 
-            return Promise.all(validations).then(() => {
-            })
+                    const ruleName: string = colonIndex === -1 ? rule : rule.substring(0, colonIndex)
+
+                    if (ruleName === 'nullable' && (this[field] === null || this[field] === undefined || this[field] === '')) {
+                        return
+                    }
+
+                    const ruleAttributes: string[] = colonIndex === -1 ? [] : rule.substring(colonIndex + 1).split(',')
+
+                    if (ruleName in staticRules) {
+                        try {
+                            await staticRules[ruleName](this[field], ruleAttributes, this, field)
+                        } catch (error) {
+                            const errorMessage: ErrorMessage | null = this.validation.messages.get(field)
+
+                            if (errorMessage && ruleName in errorMessage) {
+                                this.validation.errors.push(field, errorMessage[ruleName])
+                            } else if (ruleName in Form.defaultMessages) {
+                                this.validation.errors.push(field, Form.interpolateMessage(Form.defaultMessages[ruleName], field, ruleAttributes, this.fieldAttributes))
+                            }
+
+                            throw error
+                        }
+                    } else {
+                        throw new Error(`There is no validation rule called "${ruleName}"`)
+                    }
+                }
+            }
+
+            return runRules()
         }
 
         return Promise.resolve()
@@ -205,7 +319,6 @@ export class Form {
 
     public values(only?: string[]): Values {
         const values: Values = {}
-
         Object.keys(this.originalValues).forEach((field: string): void => {
             if (!only || only.includes(field)) {
                 values[field] = this[field]

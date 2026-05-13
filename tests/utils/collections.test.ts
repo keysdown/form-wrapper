@@ -73,6 +73,24 @@ describe('Collection', () => {
         expect(c.first('key')).toBeNull()
     })
 
+    it('first returns "0" for array with 0 as first element', () => {
+        const c = new Collection<any>()
+        c.push('key', [0, 1, 2])
+        expect(c.first('key')).toBe('0')
+    })
+
+    it('first returns "false" for array with false as first element', () => {
+        const c = new Collection<any>()
+        c.push('key', [false, true])
+        expect(c.first('key')).toBe('false')
+    })
+
+    it('first returns "" for array with empty string as first element', () => {
+        const c = new Collection<any>()
+        c.push('key', ['', 'a'])
+        expect(c.first('key')).toBe('')
+    })
+
     it('has with array returns true if any key exists', () => {
         const c = new Collection<string>()
         c.push('name', 'value')

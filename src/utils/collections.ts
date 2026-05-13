@@ -12,10 +12,10 @@ export class Collection<T> {
     ): string | null {
         const data = this.get(key)
 
-        if (data) {
+        if (data !== null) {
             const value = Array.isArray(data) ? data[0] : data
 
-            if (value) {
+            if (value !== undefined && value !== null) {
                 return String(value)
             }
         }

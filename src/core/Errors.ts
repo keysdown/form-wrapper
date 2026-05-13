@@ -15,7 +15,7 @@ export class Errors extends Collection<string[]> {
         return this
     }
 
-    public get(key: string): string[] | null {
-        return super.get(key, [])
+    public get(key: string): string[] {
+        return super.get(key, []) as string[]
     }
 }

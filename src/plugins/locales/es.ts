@@ -1,0 +1,41 @@
+import {Locale} from '../../types/locale'
+
+const es: Locale = {
+    name: 'es',
+    messages: {
+        required: 'El campo :field es obligatorio.',
+        email: 'El campo :field debe ser una dirección de correo electrónico válida.',
+        url: 'El campo :field debe ser una URL válida.',
+        min: 'El campo :field debe tener al menos :min.',
+        max: 'El campo :field no debe ser mayor que :max.',
+        between: 'El campo :field debe estar entre :min y :max.',
+        size: 'El campo :field debe tener :size.',
+        alpha: 'El campo :field solo debe contener letras.',
+        alphaNumeric: 'El campo :field solo debe contener letras y números.',
+        string: 'El campo :field debe ser una cadena de texto.',
+        integer: 'El campo :field debe ser un número entero.',
+        numeric: 'El campo :field debe ser un número.',
+        array: 'El campo :field debe ser un array.',
+        boolean: 'El campo :field debe ser verdadero o falso.',
+        date: 'El campo :field no es una fecha válida.',
+        same: 'El campo :field y :other deben coincidir.',
+        different: 'El campo :field y :other deben ser diferentes.',
+        confirmed: 'La confirmación del campo :field no coincide.',
+        in: 'El campo :field seleccionado no es válido.',
+        notIn: 'El campo :field seleccionado no es válido.',
+        regex: 'El formato del campo :field no es válido.',
+        startsWith: 'El campo :field debe comenzar con uno de los siguientes valores: :values.',
+        endsWith: 'El campo :field debe terminar con uno de los siguientes valores: :values.',
+        digits: 'El campo :field debe tener :digits dígitos.',
+        digitsBetween: 'El campo :field debe tener entre :min y :max dígitos.',
+        ip: 'El campo :field debe ser una dirección IP válida.',
+        json: 'El campo :field debe ser una cadena JSON válida.',
+        uuid: 'El campo :field debe ser un UUID válido.',
+        lessThan: 'El campo :field debe ser menor que :other.',
+        greaterThan: 'El campo :field debe ser mayor que :other.',
+        lessThanOrEqual: 'El campo :field debe ser menor o igual que :other.',
+        greaterThanOrEqual: 'El campo :field debe ser mayor o igual que :other.',
+        nullable: 'El campo :field debe ser nulo.',
+    }
+}
+export default es
