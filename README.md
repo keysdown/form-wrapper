@@ -507,9 +507,12 @@ console.log(form.wasChanged('username')) // true
 console.log(form.wasChanged(['name', 'username'])) // true (any changed)
 ```
 
-### filled(field)
+### filled(field, strict = true)
 
-Method used to check if one or more fields are filled (not `null`, not `undefined`, not empty string `''`). When an array is provided, returns `true` only if **all** fields are filled.
+Method used to check if one or more fields are filled (not `null`, not `undefined`, not empty string `''`).
+
+- **`strict: true`** (default) — When an array is provided, returns `true` only if **all** fields are filled.
+- **`strict: false`** — When an array is provided, returns `true` if **at least one** field is filled.
 
 ```js
 const form = createForm({
@@ -524,6 +527,8 @@ console.log(form.filled('username')) // true
 console.log(form.filled('name')) // false
 
 console.log(form.filled(['name', 'username'])) // false (name is not filled)
+
+console.log(form.filled(['name', 'username'], false)) // true (username is filled)
 ```
 
 ### setAwaiting(awaiting = true)

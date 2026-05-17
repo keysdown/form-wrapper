@@ -177,13 +177,16 @@ export class Form {
     }
 
     public filled(
-        field: string | string[]
+        field: string | string[],
+        strict: boolean = true
     ): boolean {
+        const isFilled = (f: string) => this[f] !== null && this[f] !== undefined && this[f] !== ''
+
         if (Array.isArray(field)) {
-            return field.every(f => this[f] !== null && this[f] !== undefined && this[f] !== '')
+            return strict ? field.every(isFilled) : field.some(isFilled)
         }
 
-        return this[field] !== null && this[field] !== undefined && this[field] !== ''
+        return isFilled(field)
     }
 
     public get rules() {

@@ -895,6 +895,28 @@ describe('Form', () => {
             const form = new Form({})
             expect(form.filled([])).toBe(true)
         })
+
+        describe('strict false', () => {
+            it('returns true when at least one field is filled', () => {
+                const form = new Form({a: null, b: 'y'})
+                expect(form.filled(['a', 'b'], false)).toBe(true)
+            })
+
+            it('returns false when no fields are filled', () => {
+                const form = new Form({a: null, b: null})
+                expect(form.filled(['a', 'b'], false)).toBe(false)
+            })
+
+            it('returns true when all fields are filled', () => {
+                const form = new Form({a: 'x', b: 'y'})
+                expect(form.filled(['a', 'b'], false)).toBe(true)
+            })
+
+            it('returns false for empty array', () => {
+                const form = new Form({})
+                expect(form.filled([], false)).toBe(false)
+            })
+        })
     })
 
     describe('values', () => {
