@@ -328,6 +328,17 @@ export class Form {
         return values
     }
 
+    public filledValues(only?: string[]): Values {
+        const values: Values = {}
+        Object.keys(this.originalValues).forEach((field: string): void => {
+            if ((!only || only.includes(field)) && this[field] != null) {
+                values[field] = this[field]
+            }
+        })
+
+        return values
+    }
+
     public valuesAsFormData(only?: string[]) {
         return objectToFormData(this.values(only))
     }

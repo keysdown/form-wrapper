@@ -915,6 +915,30 @@ describe('Form', () => {
         })
     })
 
+    describe('filledValues', () => {
+        it('returns only non-null and non-undefined values', () => {
+            const form = new Form({a: 1, b: null, c: undefined, d: 'hello', e: 0, f: false, g: ''})
+            expect(form.filledValues()).toEqual({a: 1, d: 'hello', e: 0, f: false, g: ''})
+        })
+
+        it('filters with only parameter', () => {
+            const form = new Form({a: 1, b: null, c: 3})
+            expect(form.filledValues(['a', 'b'])).toEqual({a: 1})
+        })
+
+        it('returns current (not original) values', () => {
+            const form = new Form({a: 1, b: null})
+            form.a = 99
+            form.b = 'filled'
+            expect(form.filledValues()).toEqual({a: 99, b: 'filled'})
+        })
+
+        it('returns empty object when all values are null or undefined', () => {
+            const form = new Form({a: null, b: undefined})
+            expect(form.filledValues()).toEqual({})
+        })
+    })
+
     describe('valuesAsFormData', () => {
         it('returns FormData with all values', () => {
             const form = new Form({name: 'John'})

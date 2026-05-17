@@ -685,6 +685,42 @@ form.first_name = 'keysdown'
 axios.post('some-api', form.values(['first_name']))
 ```
 
+### filledValues()
+
+Method used to access form values, excluding fields with `null` or `undefined` values.
+
+```js
+const form = createForm({
+    username: null,
+    email: null,
+    role: 'admin'
+})
+
+form.username = 'keysdown'
+
+axios.post('some-api', form.filledValues())
+// sends { username: 'keysdown', role: 'admin' }
+```
+
+Note that `0`, `false`, and `''` (empty string) are considered filled values and will be included.
+
+#### Filtering values
+
+It is also possible to filter which fields are considered.
+
+```js
+const form = createForm({
+    first_name: null,
+    last_name: null,
+    role: 'admin'
+})
+
+form.first_name = 'keysdown'
+
+axios.post('some-api', form.filledValues(['first_name', 'last_name']))
+// sends { first_name: 'keysdown' }
+```
+
 ### valuesAsFormData()
 
 Method used to access all form values as form data.
