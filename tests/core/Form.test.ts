@@ -916,9 +916,9 @@ describe('Form', () => {
     })
 
     describe('filledValues', () => {
-        it('returns only non-null and non-undefined values', () => {
+        it('returns only non-null, non-undefined and non-empty string values', () => {
             const form = new Form({a: 1, b: null, c: undefined, d: 'hello', e: 0, f: false, g: ''})
-            expect(form.filledValues()).toEqual({a: 1, d: 'hello', e: 0, f: false, g: ''})
+            expect(form.filledValues()).toEqual({a: 1, d: 'hello', e: 0, f: false})
         })
 
         it('filters with only parameter', () => {
@@ -933,8 +933,8 @@ describe('Form', () => {
             expect(form.filledValues()).toEqual({a: 99, b: 'filled'})
         })
 
-        it('returns empty object when all values are null or undefined', () => {
-            const form = new Form({a: null, b: undefined})
+        it('returns empty object when all values are null, undefined or empty string', () => {
+            const form = new Form({a: null, b: undefined, c: ''})
             expect(form.filledValues()).toEqual({})
         })
     })

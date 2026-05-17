@@ -331,7 +331,7 @@ export class Form {
     public filledValues(only?: string[]): Values {
         const values: Values = {}
         Object.keys(this.originalValues).forEach((field: string): void => {
-            if ((!only || only.includes(field)) && this[field] != null) {
+            if ((!only || only.includes(field)) && this[field] != null && this[field] !== '') {
                 values[field] = this[field]
             }
         })
